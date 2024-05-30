@@ -23,6 +23,70 @@ encoder_dep = declare_dependency(
   dependencies : [media_library_common_dep],
   link_with : encoder_lib)
 
+
+gpiod_dep = dependency('libgpiod')
+
+
+# STREAMING LIBRARY
+gst_req = '>= 1.0.0'
+gst_rtsp_server_dep = dependency('gstreamer-rtsp-server-1.0', version : gst_req)
+gst_rtsp_dep = dependency('gstreamer-rtsp-1.0', version : gst_req)
+
+sources_streaming = [
+  'src/streaming/H15Streaming.cpp',
+  ]
+
+streaming_lib = static_library('hailo_streaming_api',
+  sources_streaming,
+  include_directories: include_directories('./include/streaming'),
+  dependencies : [gstreamer_deps, json_dep, gst_rtsp_server_dep, gst_rtsp_dep],
+  gnu_symbol_visibility : 'default',
+  install: true,
+  install_dir: get_option('libdir'),
+)
+
+streaming_dep = declare_dependency(
+  include_directories: [include_directories('./include/')],
+  link_with : streaming_lib)
+
+
+# RESIZE LIBRARY
+source_resize_crop = [
+  'src/resize_crop/H15DspResizeCrop.cpp',
+]
+
+extern_resizecrop_lib = static_library('hailo_extern_resizecrop_api',
+  source_resize_crop,
+  include_directories: include_directories('./include/resize_crop'),
+  dependencies : [gstmedialibrary_utils_dep, dsp_dep],
+  gnu_symbol_visibility : 'default',
+  install: true,
+  install_dir: get_option('libdir'),
+)
+
+extern_resize_crop_dep = declare_dependency(
+  include_directories: [include_directories('./include/')],
+  link_with : extern_resizecrop_lib)
+
+
+################################################
+# Native Custom Example
+################################################
+native_incdir = include_directories(['examples/native_custom/', 'examples/native_custom/infra/', 'examples/native_custom/Others/' ])
+
+native_custom_example_src = ['examples/native_custom/main.cpp']
+
+executable('custom_full_inference_example',
+  native_custom_example_src,
+  dependencies : gstreamer_deps + [ media_library_frontend_dep, gstmedialibrary_utils_dep, encoder_dep, streaming_dep, 
+                                    extern_resize_crop_dep, hailort_dep, opencv_dep],
+  include_directories : native_incdir,
+  gnu_symbol_visibility : 'default',
+  install: true,
+  install_dir: get_option('bindir'),
+)
+
+
 ################################################
 # Frontend Example
 ################################################
