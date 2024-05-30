@@ -185,6 +185,58 @@ namespace dsp_utils
     }
 
     /**
+     * Perform DSP crop and resize with letterbox
+     * The function calls the DSP library to perform crop and resize on a given
+     * buffer. DSP will place the result in the output buffer.
+     *
+     * @param[in] input_image_properties input image properties
+     * @param[out] output_image_properties output image properties
+     * @param[in] args crop and resize arguments
+     * @param[in] dsp_interpolation_type interpolation type to use
+     * @param[in] dsp_letterbox_property letterbox property, alignment DSP_LETTERBOX_MIDDLE or DSP_LETTERBOX_UP_LEFT
+     * @return dsp_status
+     */
+    dsp_status
+    perform_crop_and_resize_letterbox(  dsp_image_properties_t *input_image_properties,
+                                        dsp_image_properties_t *output_image_properties,
+                                        crop_resize_dims_t args,
+                                        dsp_interpolation_type_t dsp_interpolation_type,
+                                        dsp_letterbox_properties_t  dsp_letterbox_property)
+    {
+        if (device == NULL)
+        {
+            LOGGER__ERROR("Perform DSP crop and resize ERROR: Device is NULL");
+            return DSP_UNINITIALIZED;
+        }
+
+        dsp_resize_params_t resize_params = {
+            .src = input_image_properties,
+            .dst = output_image_properties,
+            .interpolation = dsp_interpolation_type,
+        };
+
+        dsp_crop_api_t crop_params = {
+                .start_x = args.crop_start_x,
+                .start_y = args.crop_start_y,
+                .end_x = args.crop_end_x,
+                .end_y = args.crop_end_y,
+            };
+
+        dsp_status status; 
+        status = dsp_crop_and_resize_letterbox(device, &resize_params, &crop_params, &dsp_letterbox_property);
+ 
+        if (status != DSP_SUCCESS)
+        {
+            LOGGER__ERROR("DSP Crop & resize letterbox command failed with status {}",
+                          status);
+            return status;
+        }
+
+        LOGGER__INFO("DSP Crop & resize letterbox command completed successfully");
+        return DSP_SUCCESS;
+    }
+
+    /**
      * Perform DSP crop and resize
      * The function calls the DSP library to perform crop and resize on a given
      * buffer. DSP will place the result in the output buffer.

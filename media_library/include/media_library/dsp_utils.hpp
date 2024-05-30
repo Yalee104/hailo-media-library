@@ -62,6 +62,14 @@ namespace dsp_utils
   dsp_status create_hailo_dsp_buffer(size_t size, void **buffer, bool dma = false);
   dsp_status release_hailo_dsp_buffer(void *buffer);
 
+  //Aaron Add
+  dsp_status
+  perform_crop_and_resize_letterbox(dsp_image_properties_t *input_image_properties,
+                                    dsp_image_properties_t *output_image_properties,
+                                    crop_resize_dims_t args,
+                                    dsp_interpolation_type_t dsp_interpolation_type,
+                                    dsp_letterbox_properties_t  dsp_letterbox_property);
+
   dsp_status
   perform_crop_and_resize(dsp_image_properties_t *input_image_properties,
                           dsp_image_properties_t *output_image_properties,
