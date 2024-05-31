@@ -307,15 +307,8 @@ void create_pipeline(std::shared_ptr<AppResources> app_resources)
     std::shared_ptr<DetectorDrawProcessStage> detector_draw_process_stage = std::make_shared<DetectorDrawProcessStage>("det_draw_process", 
                                                                                                                         10);
 
-
-#if 0 //TEST ONLY
-    std::shared_ptr<DetectorResizeStage> detector_yolov5s_resize_stage = std::make_shared<DetectorResizeStage>("detector_yolov5s_resize", 5, 10, DETECTOR_YOLOV5S_WIDTH, DETECTOR_YOLOV5S_HEIGHT);
-    std::shared_ptr<HailortAsyncStage> detector_yolov5s_infer_stage = std::make_shared<HailortAsyncStage>("hrt_detector_yolov5s", 10, 20, DETECTOR_YOLOV5S_HEF_FILE, "0", DETECTOR_YOLOV5S_BATCH_SIZE);
-    std::shared_ptr<DetectorYolov5mPostProcessStage> detector_yolov5s_post_process_stage = std::make_shared<DetectorYolov5mPostProcessStage>("detector_yolov5s_post_process", 5 * DETECTOR_YOLOV5S_BATCH_SIZE);
-#endif
-
     app_resources->source_stage = std::static_pointer_cast<ProducableBufferStage>(frontend_aggregator_stage);
-
+    
     app_resources->pipeline->add_stage(frontend_aggregator_stage);
     app_resources->pipeline->add_stage(detector_resize_stage);
     app_resources->pipeline->add_stage(detector_infer_stage);
@@ -323,16 +316,6 @@ void create_pipeline(std::shared_ptr<AppResources> app_resources)
     app_resources->pipeline->add_stage(encode_stream_process_stage);
     app_resources->pipeline->add_stage(detector_draw_process_stage);
     
-
-#if 0 //TEST ONLY
-    app_resources->pipeline->add_stage(detector_yolov5s_resize_stage);
-    app_resources->pipeline->add_stage(detector_yolov5s_infer_stage);
-    app_resources->pipeline->add_stage(detector_yolov5s_post_process_stage);
-#endif
-
-    //app_resources->pipeline->add_stage(bbox_crop_stage);
-    //app_resources->pipeline->add_stage(dummy_stage);
-
     //Pipeline Flow - After we get the frontend stream(s) we pass it to the detector resize stage to resize to detector network input size
     frontend_aggregator_stage->add_subscriber(detector_resize_stage);
 
@@ -347,18 +330,6 @@ void create_pipeline(std::shared_ptr<AppResources> app_resources)
 
     //Pipeline Flow - After we are done drawing the bbox we pass it to the encoder+stream and this will be the final stage
     detector_draw_process_stage->add_subscriber(encode_stream_process_stage);
-
-
-#if 0 //TEST ONLY
-    //Pipeline Flow - After we get the frontend stream(s) we pass it to the detector resize stage to resize to detector network input size
-    frontend_aggregator_stage->add_subscriber(detector_yolov5s_resize_stage);
-
-    //Pipeline Flow - After we resize it we pass in to the detector inference 
-    detector_yolov5s_resize_stage->add_subscriber(detector_yolov5s_infer_stage);
-
-    //Pipeline Flow - After we infer the resized frame to the network we pass it to the detector post process
-    detector_yolov5s_infer_stage->add_subscriber(detector_yolov5s_post_process_stage);
-#endif
 
 }
 
